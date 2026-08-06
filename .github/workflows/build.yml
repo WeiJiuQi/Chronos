@@ -1,0 +1,54 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: >-
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCHRONOS_BUILD_BASELINES=OFF
+      - name: Build
+        run: cmake --build build --parallel 2
+      - name: CLI smoke checks
+        shell: bash
+        run: |
+          ./build/tango/tango_index --help
+          ./build/tango/tango_query --help
+          ./build/tango/tango_dynamic --help
+          ./build/tango/tango_decay_profile --help
+          ./build/tdvs_workload_builder/prepare_vector_subset --help
+          ./build/tdvs_workload_builder/generate_time_metadata --help
+          ./build/tdvs_workload_builder/generate_tdvs_groundtruth --help
+          ./build/tdvs_workload_builder/export_mips_transforms --help
+          ./build/tdvs_workload_builder/verify_dataset_alignment --help
+
+  baselines:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: >-
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCHRONOS_BUILD_TANGO=OFF
+          -DCHRONOS_BUILD_TDVS_WORKLOAD_BUILDER=OFF
+      - name: Build
+        run: cmake --build build --parallel 2
+      - name: CLI smoke checks
+        shell: bash
+        run: |
+          ./build/baselines/tdvs_ip_nsw --help
+          ./build/baselines/tdvs_ip_nsw_plus --help
+          ./build/baselines/tdvs_napg --help
+          ./build/baselines/tdvs_mag --help
+          ./build/baselines/tdvs_psp --help

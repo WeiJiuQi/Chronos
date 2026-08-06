@@ -1,0 +1,24 @@
+diff --git a/faiss/impl/NNDescent.cpp b/faiss/impl/NNDescent.cpp
+index 1870ebd..5bd90bd 100644
+--- a/faiss/impl/NNDescent.cpp
++++ b/faiss/impl/NNDescent.cpp
+@@ -452,7 +452,8 @@ void NNDescent::build(DistanceComputer& qdis, const int n, bool verbose) {
+         std::sort(graph[i].pool.begin(), graph[i].pool.end());
+         for (int j = 0; j < K; j++) {
+             FAISS_ASSERT(graph[i].pool[j].id < ntotal);
+-            final_graph[i * K + j] = graph[i].pool[j].id;
++            final_graph[static_cast<size_t>(i) * static_cast<size_t>(K) + j] =
++                    graph[i].pool[j].id;
+         }
+     }
+     std::vector<Nhood>().swap(graph);
+@@ -500,7 +501,8 @@ void NNDescent::search(
+             int n = retset[k].id;
+ 
+             for (int m = 0; m < K; ++m) {
+-                int id = final_graph[n * K + m];
++                int id = final_graph
++                        [static_cast<size_t>(n) * static_cast<size_t>(K) + m];
+                 if (vt.get(id)) {
+                     continue;
+                 }
